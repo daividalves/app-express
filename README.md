@@ -123,3 +123,27 @@ type Item = {
     descricao: string
 }
 ```
+
+## Detalhes Técnicos e Decisões de Projeto
+
+Esta seção detalha as decisões técnicas e as melhores práticas adotadas na construção desta API.
+
+### 1. Configuração e Desenvolvimento
+
+*   **Inicialização do Projeto:** O arquivo `package.json` é comumente criado de forma automática com as configurações padrão usando o comando `npm init -y`.
+*   **TypeScript:** O uso de TypeScript, em vez de JavaScript puro, foi escolhido para adicionar **tipagem estática** e **intellisense**, o que é crucial para reduzir erros e aumentar a manutenibilidade em projetos de médio a grande porte.
+*   **Compilação:** A configuração `outDir` no `tsconfig.json` define o diretório onde os arquivos JavaScript compilados serão salvos.
+*   **Interfaces e Transpilação:** As `Interfaces` definidas no TypeScript são um recurso de *design time* e **desaparecem completamente** do código JavaScript final após a transpilação (processo conhecido como *erasure*), pois o JavaScript não possui esse conceito nativo.
+
+### 2. Express e Boas Práticas REST
+
+*   **Função do Express:** O Express atua como um **framework web minimalista** para gerenciar rotas e requisições HTTP de forma eficiente.
+*   **Análise de JSON:** Para que a API consiga ler dados enviados no corpo da requisição em formato JSON (acessível via `req.body`), o middleware `app.use(express.json())` é configurado.
+*   **Tratamento de Erros:** Um Middleware de tratamento de erros no Express deve ter a assinatura de **quatro argumentos** `(err, req, res, next)` para ser reconhecido e executado apenas quando um erro é propagado.
+*   **Códigos de Status HTTP:** Ao criar um novo recurso via API REST, o código de status HTTP mais semanticamente correto para uma resposta de sucesso é o **`201 Created`**.
+
+### 3. Persistência de Dados (SQLite)
+
+*   **Padrão Assíncrono:** O driver padrão `sqlite3` para Node.js opera nativamente usando o padrão de **Callbacks (Erro-Primeiro)**.
+*   **Obtenção do ID:** Ao inserir um registro com `db.run()`, o ID do registro recém-criado (auto-incremento) é acessível via `this.lastID` dentro do *callback*.
+*   **Cuidado com Arrow Functions:** Funções de seta (**Arrow Functions NÃO devem ser usadas**) como *callback* para `db.run()`, pois elas não preservam o contexto `this` necessário para acessar o `lastID`. Deve-se usar uma função tradicional (`function`) para que o `sqlite3` possa injetar o contexto correto.
